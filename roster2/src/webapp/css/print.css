@@ -1,0 +1,60 @@
+.noprint  { display: none; }
+
+#skipNav, .Mrphs-mainHeader, #toolMenuWrap, #footer, #selectSiteModal, .Mrphs-siteHierarchy {
+    display: none !important;
+}
+
+#roster_navbar, #roster-filters, #roster-search-group, .roster-connections-cell, .roster-print-button {
+    display: none !important;
+}
+
+#roster_type_selector {
+    display: none !important;
+}
+
+.roster-table {
+        display: table;
+}
+
+.roster-table-header-group {
+    display: table-header-group;
+    font-weight: bold;
+    padding-bottom: 10px;
+}
+
+.roster-table-row-group {
+    display: table-row-group;
+}
+
+.roster-table-row {
+    display: table-row;
+}
+
+.roster-table-cell {
+    display: table-cell;
+    padding-right: 10px;
+    white-space: nowrap;
+}
+
+.roster-member:nth-child(odd) {
+    background: #F8F8F8;
+}
+
+.roster-picture {
+    width: 80px;
+    padding: 5px 0px 5px 5px;
+}
+
+
+.roster-mobile-label {
+    display: none;
+    font-weight: bold;
+    padding-right: 10px;
+}
+.roster-last-visit-time-cell {
+    font-size: 0.9em;
+}
+
+.roster-picture {
+    width: 50px;
+}

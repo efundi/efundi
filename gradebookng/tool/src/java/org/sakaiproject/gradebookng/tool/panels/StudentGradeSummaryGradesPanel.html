@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+
+<body>
+	<wicket:panel>
+		<div class="gb-summary-grade-panel">
+			<div class="gb-summary-course-grade pull-left">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<span id="summaryCourseGradeLabel" class="gb-summary-course-grade-label">
+							<strong><wicket:message key="label.studentsummary.coursegrade" /></strong>
+						</span>
+						<span class="gb-summary-course-grade-value" aria-labelledby="summaryCourseGradeLabel">
+							<span wicket:id="courseGrade">B+</span>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div wicket:id="gradeSummaryTable"/>
+
+			<div wicket:id="noAssignments" class="messageInformation">
+				<wicket:message key="no-assignments.label" />
+			</div>
+		</div>
+	</wicket:panel>
+</body>
+</html>
