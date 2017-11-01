@@ -1,9 +1,0 @@
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/MyApplication.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/pages/OptionsPage.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/pages/DashboardMobilePage.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/pages/BasePage.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/panels/NewsLinksPanel.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/panels/CalendarLinksPanel.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/panels/MOTDPanel.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/util/JsonHelper.java
-/opt/efundi/dashboard/tool/src/java/org/sakaiproject/dash/tool/pages/DashboardPage.java
