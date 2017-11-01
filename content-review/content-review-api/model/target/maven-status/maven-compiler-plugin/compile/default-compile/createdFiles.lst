@@ -1,0 +1,6 @@
+org/sakaiproject/contentreview/model/ContentReviewItem.class
+org/sakaiproject/contentreview/exception/SubmissionException.class
+org/sakaiproject/contentreview/exception/ReportException.class
+org/sakaiproject/contentreview/exception/TransientSubmissionException.class
+org/sakaiproject/contentreview/exception/QueueException.class
+org/sakaiproject/contentreview/model/ContentReviewLock.class

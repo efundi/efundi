@@ -1,0 +1,8 @@
+org/sakaiproject/dash/mock/DashboardDaoMock.class
+org/sakaiproject/dash/test/DashboardDaoTest.class
+org/sakaiproject/dash/mock/SakaiProxyMock.class
+org/sakaiproject/dash/mock/SiteMock.class
+org/sakaiproject/dash/mock/MockServerConfigurationService.class
+org/sakaiproject/dash/mock/MockTransactionManager.class
+org/sakaiproject/dash/mock/DashboardDaoMock$1.class
+org/sakaiproject/dash/test/DashboardLogicTest.class

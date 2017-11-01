@@ -30,12 +30,12 @@ $header-font-weight: 700 !default;										// 400 or 700 as you wish
 
 /* Color palette */
 $background-color: 			 #FFFFFF !default;
-$background-color-secondary: #444444 !default;
+$background-color-secondary: #009DCE !default;
 
-$primary-color:    			 #2a94c0 !default;
+$primary-color:    			 #6a6666 !default;
 $primary-color-shadow:			 adjust-hue( $primary-color, 5 ) !default;	// To give primary a darker shadow
-$secondary-color:  			 #F00 !default;
-$alt-colour: 				 #d36f00 !default;
+$secondary-color:  			 #009DCE !default;
+$alt-colour: 				 #009DCE !default;
 
 $text-color:				 #212121 !default;
 
@@ -116,7 +116,7 @@ $header-size : 50px !default;
 $topNav-text-color:                         #fff !default; /* used for links and text in the topNav */
 $topNav-text-alt-color:                     #ccc !default;
 
-$sites-nav-menu-item-background:            #666 !default;
+$sites-nav-menu-item-background:            #00698c !default;
 $sites-nav-menu-item-color:                 #fff !default;
 $sites-nav-menu-item-color-hover:           $sites-nav-menu-item-color !default;
 $sites-nav-menu-item-border-top:            1px solid transparent !default; /* to pre-allocate space for dropdown top border needed for illusion */
@@ -155,7 +155,7 @@ $measure: 960px !default;
 /* Logo location */
 $logo: 'images/logo.png' !default;
 $logo-height: 30px !default;
-$logo-width: 50px !default;
+$logo-width: 100px !default;
 
 /* Tool icons */
 $skin-with-icons: true !default;
