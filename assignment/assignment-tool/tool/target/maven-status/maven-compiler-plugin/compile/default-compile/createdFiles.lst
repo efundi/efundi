@@ -1,0 +1,14 @@
+org/sakaiproject/assignment/tool/RedirectingAssignmentEntityServlet$MySecurityAdvisor.class
+org/sakaiproject/assignment/tool/RedirectingAssignmentEntityServlet.class
+org/sakaiproject/assignment/tool/AssignmentAction$2.class
+org/sakaiproject/assignment/tool/AssignmentAction$UploadGradeWrapper.class
+org/sakaiproject/assignment/taggable/tool/DecoratedTaggingProvider$Sort.class
+org/sakaiproject/assignment/tool/AssignmentAction$SubmitterSubmission.class
+org/sakaiproject/assignment/tool/AssignmentAction$AssignmentComparator.class
+org/sakaiproject/assignment/tool/AssignmentAction.class
+org/sakaiproject/assignment/tool/AssignmentAction$1.class
+org/sakaiproject/assignment/entityproviders/AssignmentEntityProvider.class
+org/sakaiproject/assignment/entityproviders/AssignmentEntityProvider$SimpleAssignment.class
+org/sakaiproject/assignment/entityproviders/AssignmentEntityProvider$DecoratedAttachment.class
+org/sakaiproject/assignment/taggable/tool/DecoratedTaggingProvider$Pager.class
+org/sakaiproject/assignment/taggable/tool/DecoratedTaggingProvider.class

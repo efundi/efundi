@@ -1,0 +1,16 @@
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/impl/RemoveDuplicateSubmissionsConversionHandler.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/DbAssignmentService.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/AssignmentSupplementItemServiceImpl.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/SpreadsheetExporter.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/AssignmentGradeInfoProvider.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/taggable/impl/AssignmentItemImpl.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/impl/AssignmentSubmissionAccess.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/impl/SubmitterIdAssignmentsConversionHandler.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/taggable/impl/AssignmentActivityImpl.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/BaseAssignmentService.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/api/SerializableSubmissionAccess.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/taggable/impl/AssignmentActivityProducerImpl.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/impl/CombineDuplicateSubmissionsConversionHandler.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/AssignmentPeerAssessmentServiceImpl.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/MySecurityAdvisor.java
+/opt/efundi/assignment/assignment-impl/impl/src/java/org/sakaiproject/assignment/impl/conversion/impl/SAXSerializablePropertiesAccess.java
