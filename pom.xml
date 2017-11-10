@@ -116,6 +116,10 @@
                 <module>velocity</module>
                 <module>web</module>
                 <module>webservices</module>
+                <module>bbb-tool</module>
+                <module>scorm</module>
+                <module>dashboard</module>
+                <module>blogwow</module>
             </modules>
         </profile>
         <profile>
