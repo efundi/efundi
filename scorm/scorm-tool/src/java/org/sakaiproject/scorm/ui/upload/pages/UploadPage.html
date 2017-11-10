@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"  
+      xmlns:wicket="http://wicket.sourceforge.net/"
+      xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
+      xmlns:aaa="http://www.w3.org/2005/07/aaa"  
+      xml:lang="en"  
+      lang="en">
+<head>
+	<wicket:head>
+		<title><wicket:message key="page.title"/></title>
+	</wicket:head>
+</head>
+<body>
+	<wicket:extend>
+		<div>
+    <span wicket:id="feedback"/>
+			<form wicket:id="uploadForm">
+			<table>
+		  		<tr>
+		   			<td valign="top">
+					    <div id="contentDiv" class="highlightPanel">
+				 			<p class="shorttext">
+						    	<label for="fileInput"> <wicket:message key="upload.file.label"/></label>
+						    	<input name="fileInput" wicket:id="fileInput" class="upload" accept="zip" type="file"/>
+						    </p>
+						    <br/>
+						    <p class="longtext">
+						    	<input type="checkbox" wicket:id="fileValidated"/>
+						    	<span class="instruction" wicket:id="lblValidate"></span>
+						    </p>
+						    <p class="shorttext">
+						    	<label for="priority" wicket:id="lblPriority"></label>
+						    	<select name="priority" wicket:id="priority">
+						    	</select>
+						    </p>
+				    	</div>
+		   			</td>
+		  		</tr>
+		 	</table>
+		 	
+		 	<div class="act">
+				  <input wicket:id="btnSubmit" type="submit" wicket:message="value:upload.submit" class="active" />
+				  <input wicket:id="btnCancel" type="submit" wicket:message="value:upload.cancel" />
+			</div>
+		 	
+		 	</form>
+		</div>
+	</wicket:extend>
+</body>
+</html>
