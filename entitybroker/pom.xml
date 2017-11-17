@@ -126,6 +126,17 @@
         <type>jar</type>
         <scope>test</scope>
       </dependency>
+      
+      <dependency>
+        <groupId>commons-fileupload</groupId>
+        <artifactId>commons-fileupload</artifactId>
+        <version>${sakai.commons.fileupload.version}</version>
+      </dependency>      
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>${sakai.commons.lang.version}</version>
+      </dependency>       
     </dependencies>
   </dependencyManagement>
 </project>
