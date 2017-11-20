@@ -60,6 +60,7 @@
  <script type="text/javascript" src="$context/js/hoverIntent.js"></script>
  <script type="text/javascript" src="$context/js/show-page.js"></script>
  <script type="text/javascript" src="$context/js/gradingAjax.js"></script>
+ <script type="text/javascript" src="$context/js/jquery.cookie.js"></script>
  <script type="text/javascript" src="$context/js/checklistAjax.js"></script>
  <link rel="stylesheet" rsf:id="customCSS" type="text/css" />
 
@@ -351,6 +352,22 @@
                       <a href="#" role="menuitem button" aria-haspopup="dialog" aria-controls="export-cc-dialog" rsf:id="export-cc" id="export-cc"><span rsf:id="msg=simplepage.export_cc"></span></a>
                       <!-- just a message, so will display when it should not-->
                     </li>
+                    <li>
+                        <a href="#" role="menuitem" rsf:id="import-docx" id="import-docx"><span rsf:id="msg=simplepage.import_docx"></span></a>
+                        <!-- just a message, so will display when it should not-->
+                        <div rsf:id="msg=simplepage.importdocx-descrip"></div>
+                    </li> 
+                    <li>
+                        <a href="#" role="menuitem" rsf:id="export-epub" id="export-epub"><span rsf:id="msg=simplepage.export_epub"></span></a>
+                        <!-- just a message, so will display when it should not-->
+                        <div rsf:id="msg=simplepage.exportepub-descrip"></div>
+                    </li> 
+                    <li>
+                        <a href="#" role="menuitem" rsf:id="export-docx" id="export-docx"><span rsf:id="msg=simplepage.export_docx"></span></a>
+                        <!-- just a message, so will display when it should not-->
+                        <div rsf:id="msg=simplepage.exportdocx-descrip"></div>
+                    </li> 
+                    
                     <li rsf:id="show-lti-import">
                       <form action="#" rsf:id="lti-import-form" method="post" enctype="multipart/form-data">
 			<input type="hidden" rsf:id="csrf1" />
@@ -1393,7 +1410,55 @@
 					</div>
 				</form>
 			</div>
+                        
+                        
+                        <div id="import-docx-dialog" rsf:id="import-docx-dialog">
+                            <form action="#" rsf:id="import-docx-form" method="post"
+                                  enctype="multipart/form-data" class="controlPanel">
+                                <div class="">
+                                    <p>DOCX import</p>
+                                    <label rsf:id="msg=simplepage.import_docx_file" for="docx_file" id="docx-dialog-label">File</label> <br />
+                                    <input type="file" name="docx-file" id="docx-file" style="width:95%" class="edit-multimedia-input" /><br />
+                                    <a href="#" style="display: none" rsf:id="import-docx-link"	id="import-docx-link"></a>
+                                    <label id="import-docx-message">DOCX imported and lesson has been created. </label>
+                                    <a id="import-docx-resource"></a>
+                                </div>
+                                <div id="docx-import-controls">
+                                    <input type="submit" id="import-docx-submit" rsf:id="import-docx-submit" />
+                                    <input type="submit" rsf:id="import-docx-cancel" onclick="closeImportDocxDialog(); return false" />
+                                </div>
+                                <br/>
+                                <div id="importDocxProgressbar"></div>
+                            </form>
+                        </div>
 
+                        <div id="export-epub-dialog" rsf:id="export-epub-dialog">
+                            <form action="#" rsf:id="export-epub-form" method="post"
+                                  enctype="multipart/form-data" class="controlPanel">
+                                <div class="">
+                                    <p>EPUB export</p>
+                                    <a href="#" style="display: none" rsf:id="export-epub-link"	id="export-epub-link"></a>
+                                    <label id="export-epub-message">Epub exported and saved to resources as : </label>
+                                    <a id="export-epub-resource"></a>
+                                </div>
+                                <div>
+                                    <input type="submit" id="export-epub-ok" rsf:id="export-epub-ok" onclick="location.reload(); return false" />
+                                </div>
+                                <div id="epubProgressbar"></div>
+                            </form>
+                        </div>
+                        <div id="export-docx-dialog" rsf:id="export-docx-dialog">
+                            <form action="#" rsf:id="export-docx-form" method="post"
+                                  enctype="multipart/form-data" class="controlPanel">
+                                <div class="">
+                                    <p>DocX export</p>
+                                    <a href="#" style="display: none" rsf:id="export-docx-link"	id="export-docx-link"></a>
+                                </div>
+
+                                <div id="docxProgressbar"></div>
+                            </form>
+                        </div>
+                    
 			<div id="edit-title-dialog" rsf:id="edit-title-dialog" class="lessonsDialog">
 				<div class="ui-widget" id="edit-title-error-container">
 					<div class="message-error">

@@ -104,6 +104,8 @@ import org.sakaiproject.lessonbuildertool.tool.view.GeneralViewParameters;
 import org.sakaiproject.lessonbuildertool.tool.view.QuestionGradingPaneViewParameters;
 import org.sakaiproject.lessonbuildertool.tool.view.ExportCCViewParameters;
 import org.sakaiproject.lessonbuildertool.service.LessonBuilderAccessService;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportEpubViewParameters;
 import org.sakaiproject.authz.api.AuthzGroup;
 import org.sakaiproject.memory.api.Cache;
 import org.sakaiproject.memory.api.MemoryService;
@@ -159,6 +161,8 @@ import uk.org.ponder.rsf.viewstate.SimpleViewParameters;
 import uk.org.ponder.rsf.viewstate.ViewParameters;
 import uk.org.ponder.rsf.viewstate.ViewParamsReporter;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportPdfViewParameters;
 
 /**
  * This produces the primary view of the page. It also handles the editing of
@@ -769,7 +773,13 @@ public class ShowPageProducer implements ViewComponentProducer, DefaultView, Nav
 				createToolBarLink(PermissionsHelperProducer.VIEW_ID, tofill, "permissions", "simplepage.permissions", currentPage, "simplepage.permissions.tooltip");
 				UIOutput.make(tofill, "import-cc").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.import_cc.tooltip")));
 				UIOutput.make(tofill, "export-cc").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export_cc.tooltip")));
-
+                               // OC Adding additional export options
+                                UIOutput.make(tofill, "import-docx").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.import_docx.tooltip")));
+                                UIOutput.make(tofill, "import-pdf").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.import_pdf.tooltip")));
+                                UIOutput.make(tofill, "export-epub").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export_epub.tooltip")));
+                                UIOutput.make(tofill, "export-docx").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export_docx.tooltip")));
+                                UIOutput.make(tofill, "export-error").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export_docx.tooltip")));
+ 				
 				// Check to see if we have tools registered for external import
 				List<Map<String, Object>> toolsFileItem = simplePageBean.getToolsFileItem();
 				if ( toolsFileItem.size() > 0 ) {
@@ -3242,6 +3252,11 @@ public class ShowPageProducer implements ViewComponentProducer, DefaultView, Nav
 		createRemovePageDialog(tofill, currentPage, pageItem);
 		createImportCcDialog(tofill);
 		createExportCcDialog(tofill);
+                // OC addition of additional Dialogs
+                createImportPdfDialog(tofill,currentPage);
+                createImportDocxDialog(tofill,currentPage);
+                createExportEpubDialog(tofill,currentPage);
+                createExportDocxDialog(tofill,currentPage);
 		createYoutubeDialog(tofill, currentPage);
 		createMovieDialog(tofill, currentPage);
 		createCommentsDialog(tofill);
@@ -4244,6 +4259,78 @@ public class ShowPageProducer implements ViewComponentProducer, DefaultView, Nav
 
 	}
 
+        /**
+        * Create the RSF form for the Epub export dialog
+        * @param tofill
+        */
+        private void createExportEpubDialog(UIContainer tofill,SimplePage page) {
+           UIOutput.make(tofill, "export-epub-dialog").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export-epub-title")));
+
+           UIForm form = UIForm.make(tofill, "export-epub-form");
+           UICommand.make(form, "export-epub-ok", messageLocator.getMessage("simplepage.export-epub-ok"), null);
+
+           ExportEpubViewParameters view = new ExportEpubViewParameters("exportEpub");
+           view.setPageId(page.getPageId());
+           view.setUrl(myUrl());
+           UIInternalLink.make(form, "export-epub-link", "export epub link", view);                
+        }  
+
+       /**
+        * Create the RSF form for the PDF import dialog
+        *
+        * @param tofill
+        */
+        private void createImportPdfDialog(UIContainer tofill, SimplePage page) {
+           UIOutput.make(tofill, "import-pdf-dialog").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.import-pdf-title")));
+
+           UIForm form = UIForm.make(tofill, "import-pdf-form");
+           UICommand.make(form, "import-pdf-ok", messageLocator.getMessage("simplepage.import-pdf-ok"), null);
+
+           ImportPdfViewParameters view = new ImportPdfViewParameters("importPdf");
+           view.setPageId(page.getPageId());
+           view.setUrl(myUrl());
+           UIInternalLink.make(form, "import-pdf-link", "import pdf link", view);
+        }
+
+
+
+       /**
+        * Create the RSF form for the Docx export dialog
+        *
+        * @param tofill
+        */
+        private void createImportDocxDialog(UIContainer tofill, SimplePage page) {
+           UIOutput.make(tofill, "import-docx-dialog").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.import_docx-title")));
+
+           UIForm form = UIForm.make(tofill, "import-docx-form");
+           // UICommand.make(form, "import-docx-ok", messageLocator.getMessage("simplepage.import-docx-ok"), null);
+
+           UICommand.make(form, "import-docx-submit", messageLocator.getMessage("simplepage.save_message"), "#{simplePageBean.importDocx}");
+           UICommand.make(form, "mm-cancel", messageLocator.getMessage("simplepage.cancel"), null);
+
+           ImportDocxViewParameters view = new ImportDocxViewParameters("importDocx");
+           view.setPageId(page.getPageId());
+           view.setUrl(myUrl());
+           UIInternalLink.make(form, "import-docx-link", "import docx link", view);
+        }
+
+       /**
+        * Create the RSF form for the DocX export dialog
+        * @param tofill
+        */
+        private void createExportDocxDialog(UIContainer tofill, SimplePage page) {
+           UIOutput.make(tofill, "export-docx-dialog").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.export-docx-title")));
+
+           UIForm form = UIForm.make(tofill, "export-docx-form");
+
+           ExportDocxViewParameters view = new ExportDocxViewParameters("exportDocx");
+           view.setExportDocx(true);
+           view.setToolId(httpServletRequest.getQueryString());
+           view.setPageId(page.getPageId());
+           view.setUrl(myUrl());
+           UIInternalLink.make(form, "export-docx-link", "export docx link", view);
+        }
+        
 	private void createEditMultimediaDialog(UIContainer tofill, SimplePage currentPage) {
 		UIOutput.make(tofill, "edit-multimedia-dialog").decorate(new UIFreeAttributeDecorator("title", messageLocator.getMessage("simplepage.editMultimedia")));
 

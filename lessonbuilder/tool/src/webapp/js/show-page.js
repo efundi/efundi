@@ -305,6 +305,38 @@ $(document).ready(function() {
 			draggable: false
 		});
 
+                $('#import-docx-dialog').dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: false,
+                    resizable: false,
+                    draggable: false
+                });
+
+                $('#import-pdf-dialog').dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: false,
+                    resizable: false,
+                    draggable: false
+                });
+
+                $('#export-epub-dialog').dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: false,
+                    resizable: false,
+                    draggable: false
+                });
+
+                $('#export-docx-dialog').dialog({
+                    autoOpen: false,
+                    width: 600,
+                    modal: false,
+                    resizable: false,
+                    draggable: false
+                });
+
 		$('#comments-dialog').dialog({
 			autoOpen: false,
 			width: modalDialogWidth(),
@@ -368,7 +400,8 @@ $(document).ready(function() {
 		$(window).resize(function() {
 			var modalDialogList = ['#subpage-dialog', '#edit-item-dialog', '#edit-multimedia-dialog',
 			'#add-multimedia-dialog', '#edit-title-dialog', '#new-page-dialog', '#remove-page-dialog',
-			'#youtube-dialog', '#movie-dialog', '#import-cc-dialog', '#export-cc-dialog',
+			'#youtube-dialog', '#movie-dialog', '#import-cc-dialog', '#export-cc-dialog','#import-docx-dialog', 
+                        '#export-epub-dialog', '#export-docx-dialog',
 		        '#comments-dialog', '#student-dialog', '#question-dialog', '#delete-confirm'];
 			for (var i = 0; i < modalDialogList.length; i++) {
 				$(modalDialogList[i]).dialog("option", "width", modalDialogWidth());
@@ -497,6 +530,101 @@ $(document).ready(function() {
 			closeExportCcDialog();
 			return false;
 		    });
+
+                $('#import-docx').click(function () {
+                    oldloc = $(".dropdown a");
+                    closeDropdowns();
+                    $('#import-docx-dialog').dialog('open');
+                    setupdialog($('#import-docx-dialog'));
+                    return false;
+                });
+
+                $("#import-docx-submit").on("click", function () {
+                    importDocx();
+                });
+
+                $('#import-pdf').click(function () {
+                    closeDropdowns();
+                    var position = $(this).position();
+                    $("#import-pdf-dialog").dialog("option", "position", [position.left, position.top]);
+                    oldloc = $(".dropdown a");
+                    $('#import-pdf-dialog').dialog('open');
+                    $('#import-pdf-message').hide();
+                    $('#import-pdf-resource').hide();
+                    $('#import-pdf-ok').hide();
+                    $('#importPdfProgressbar').show();
+                    checksize($('#import-pdf-dialog'));
+                    importPdf();
+                    var pdfLink = $("#import-pdf-link").attr("href");
+                    $.ajax({
+                        type: "GET",
+                        url: pdfLink,
+                        success: function (data, textStatus, resp) {
+                            var obj = $.parseJSON(resp.responseText);
+                            $('#import-pdf-message').show();
+                            $('#import-pdf-resource').show();
+                            $('#import-pdf-ok').show();
+                            if (obj.errorMessage) {
+                                $('#import-pdf-message').text(obj.errorMessage);
+                                $('#import-pdf-message').parent().append("<div>" + obj.errorReason + "</div>");
+                            } else {
+                                $('#import-pdf-resource').text(data.docName);
+                                $('#import-pdf-resource').attr("href", data.docURL);
+                            }
+                            $('#importPdfProgressbar').hide();
+                        }
+                    });
+                    return false;
+                });
+
+                $('#export-epub').click(function () {
+                    oldloc = $(".dropdown a");
+                    closeDropdowns();
+                    $('#export-epub-dialog').dialog('open');
+                    setupdialog($('#export-epub-dialog'));
+                    exportToEpub();
+                    var epubLink = $("#export-epub-link").attr("href");
+                    $.ajax({
+                        type: "GET",
+                        url: epubLink,
+                        success: function (data, textStatus, resp) {
+                            var obj = $.parseJSON(resp.responseText);
+                            $('#export-epub-message').show();
+                            $('#export-epub-resource').show();
+                            $('#export-epub-ok').show();
+                            if (obj.errorMessage) {
+                                $('#export-epub-message').text(obj.errorMessage);
+                                $('#export-epub-message').parent().append("<div>" + obj.errorReason + "</div>");
+                            } else {
+                                $('#export-epub-resource').text(data.docName);
+                                $('#export-epub-resource').attr("href", data.docURL);
+                            }
+                            $('#epubProgressbar').hide();
+                        }
+                    });
+                    return false;
+                });
+
+                $('#export-docx').click(function () {
+                    console.log("test 123");
+                    oldloc = $(".dropdown a");
+                    closeDropdowns();
+                    $('#export-docx-dialog').dialog('open');
+                    setupdialog($('#export-docx-dialog'));
+                    $.removeCookie('fileDownloadToken', {path: '/'});
+                    oldloc = $(".dropdown a");
+                    exportToDocx();
+                    $("#export-docx-link").get(0).click();
+                    fileDownloadCheckTimer = window.setInterval(function () {
+                        var cookieValue = $.cookie('fileDownloadToken');
+                        if (cookieValue === "closeDocXDialog") {
+                            window.clearInterval(fileDownloadCheckTimer);
+                            $.removeCookie('fileDownloadToken', {path: '/'});
+                            location.reload();
+                        }
+                    }, 1000);
+                    return false;
+                }); 
 
 		$('#import-cc-submit').click(function() {
 			// prevent double clicks
@@ -2083,6 +2211,9 @@ $(document).ready(function() {
 				$('#movie-dialog').dialog('isOpen') ||
 				$('#import-cc-dialog').dialog('isOpen') ||
 				$('#export-cc-dialog').dialog('isOpen') ||
+                                $('#import-docx-dialog').dialog('isOpen') ||
+                                $('#export-epub-dialog').dialog('isOpen') ||
+                                $('#export-docx-dialog').dialog('isOpen') ||
 				$('#comments-dialog').dialog('isOpen') ||
 				$('#column-dialog').dialog('isOpen') ||
 			        $('#student-dialog').dialog('isOpen') ||
@@ -2586,6 +2717,26 @@ function closeImportCcDialog() {
 
 function closeExportCcDialog() {
 	$('#export-cc-dialog').dialog('close');
+	oldloc.focus();
+}
+
+function closeExportEpubDialog() {
+	$('#export-epub-dialog').dialog('close');
+	oldloc.focus();
+}
+
+function closeImportDocxDialog() {
+	$('#import-docx-dialog').dialog('close');
+	oldloc.focus();
+}
+
+function closeImportPdfDialog() {
+	$('#import-pdf-dialog').dialog('close');
+	oldloc.focus();
+}
+
+function closeExportDocxDialog() {
+        $('#export-docx-dialog').dialog('close');
 	oldloc.focus();
 }
 
@@ -3469,4 +3620,54 @@ function fixStatus(here,itemId) {
 	    });
 	return;
     };
+}
+
+/**
+ * Export to epub function. 
+ * Displays the progress bar and populates the value.
+ */
+function exportToEpub(){
+    $( "#epubProgressbar" ).progressbar({
+             value: false
+    });
+}
+
+/**
+ * Import to Docx function. 
+ * Displays the progress bar and populates the value.
+ */
+function importDocx(){
+    $( "#importDocxProgressbar" ).progressbar({
+        value: false
+    });
+    $('#importDocxProgressbar').show();
+    $('#docx-import-controls').hide();
+}
+
+/**
+ * Import to PDF function. 
+ * Displays the progress bar and populates the value.
+ */
+function importPdf(){
+    $( "#importPdfProgressbar" ).progressbar({
+        value: false
+    });
+}
+
+/**
+ * Export to DocX function. 
+ * Displays the progress bar and populates the value.
+ */
+function exportToDocx(){
+    $( "#docxProgressbar" ).progressbar({
+             value: false
+    });    
+}
+
+/**
+ * Close the ExportDocxDialog
+ */
+function closeExportDocxDialog() {
+    $('#export-docx-dialog').dialog('close');
+    oldloc.focus();
 }

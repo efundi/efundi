@@ -14,15 +14,36 @@
 
 package org.sakaiproject.lessonbuildertool.tool.beans;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sakaiproject.lessonbuildertool.tool.view.ExportCCViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportDocxViewParameters;
+import org.sakaiproject.lessonbuildertool.tool.view.ExportEpubViewParameters;
 import org.sakaiproject.lessonbuildertool.ccexport.CCExport;
+import org.sakaiproject.lessonbuildertool.docxexport.DocxExport;
+import org.sakaiproject.lessonbuildertool.epubexport.EpubExport;
+import org.sakaiproject.tool.api.ToolSession;
+import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.tool.cover.ToolManager;
 import org.sakaiproject.authz.cover.SecurityService;
 import org.sakaiproject.lessonbuildertool.SimplePage;
+import org.sakaiproject.lessonbuildertool.docximport.DocxImport;
+import org.sakaiproject.lessonbuildertool.pdfimport.PdfImport;
+import org.sakaiproject.lessonbuildertool.tool.view.ImportPdfViewParameters;
+import org.sakaiproject.lessonbuildertool.util.ApplicationContextProvider;
 
 import uk.org.ponder.rsf.viewstate.ViewParameters;
 
@@ -64,6 +85,54 @@ public class ReportHandlerHook {
 	  CCExport ccExport = new CCExport();
 	  ccExport.doExport(siteId, response, (ExportCCViewParameters)viewparams);
 
+          return true;
+      }else if(viewparams instanceof ExportEpubViewParameters){
+    	  String siteId = ToolManager.getCurrentPlacement().getContext();
+     	  String ref = "/site/" + siteId;
+    	  boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+    	  if (!ok)
+    	      return false;
+
+          log.debug("Handing viewparams and response off to the reportExporter");
+    	  EpubExport epubExport = (EpubExport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.epubexport.EpubExport");
+          //EpubExport epubExport = new EpubExport();
+    	  epubExport.doExport(siteId, response, (ExportEpubViewParameters)viewparams);
+          return true;
+      }else if(viewparams instanceof ExportDocxViewParameters){
+    	  String siteId = ToolManager.getCurrentPlacement().getContext();
+     	  String ref = "/site/" + siteId;
+    	  boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+    	  if (!ok)
+    	      return false;
+
+          log.debug("Handing viewparams and response off to the reportExporter");
+          log.debug("Export Docx");
+          DocxExport docxExport = (DocxExport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.docxexport.DocxExport");
+          docxExport.doExport(siteId, response, (ExportDocxViewParameters)viewparams);
+          return true;
+      }else if(viewparams instanceof ImportDocxViewParameters){
+    	  String siteId = ToolManager.getCurrentPlacement().getContext();
+     	  String ref = "/site/" + siteId;
+    	  boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+    	  if (!ok)
+    	      return false;
+
+          log.debug("Handing viewparams and response off to the reportImporter");
+          log.debug("Import Docx");
+//          DocxImport docxImport = (DocxImport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.docximport.DocxImport");
+//          docxImport.doImport(siteId, response, (ImportDocxViewParameters)viewparams);
+          return true;
+      } else if(viewparams instanceof ImportPdfViewParameters){
+    	  String siteId = ToolManager.getCurrentPlacement().getContext();
+     	  String ref = "/site/" + siteId;
+    	  boolean ok = SecurityService.unlock(SimplePage.PERMISSION_LESSONBUILDER_UPDATE, ref);
+    	  if (!ok)
+    	      return false;
+
+          log.debug("Handing viewparams and response off to the reportImporter");
+          log.debug("Import Pdf");
+          PdfImport pdfImport = (PdfImport) ApplicationContextProvider.getApplicationContext().getBean("org.sakaiproject.lessonbuildertool.pdfimport.PdfImport");
+          pdfImport.doImport(siteId, response, (ImportPdfViewParameters)viewparams);
           return true;
       }
       return false;
