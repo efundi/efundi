@@ -150,6 +150,7 @@ RESTful, ActionsExecutable, Redirectable, RequestStorable, DepthLimitable {
     private ContentHostingService contentHostingService;
     public void setContentHostingService(ContentHostingService contentHostingService) {
         this.contentHostingService = contentHostingService;
+        this.securityService = securityService;
     }
 
     public static String PREFIX = "site";
@@ -1216,5 +1217,231 @@ RESTful, ActionsExecutable, Redirectable, RequestStorable, DepthLimitable {
     		}
     		return null;
         }
-
-}
+    
+    	@EntityCustomAction(action = "createProjectSite", viewKey = "")
+        public String createProjectSite(EntityView view, Map<String, Object> params) {
+            // expects site/createProjectSite
+            if (!developerHelperService.isUserAdmin(developerHelperService.getCurrentUserId())) {
+                throw new SecurityException("Permission denied. Must be super user to create a new Course Site");
+            }
+            if (!params.containsKey("siteid")) {
+                throw new IllegalArgumentException("Must include a 'siteid' in order to create a new Course Site.");
+            }
+            String siteid = (String) params.get("siteid");
+            Site site = null;
+            String createdSiteId = null;
+            try {
+                String title;
+                if (params.containsKey("title")){
+                    title = (String) params.get("title");
+                } else{
+                    title = siteid;
+                }
+                
+                site = siteService.addSite(siteid, "project");
+                site.setTitle(title);
+                site.setDescription((String) params.get("description"));
+                site.setShortDescription((String) params.get("shortdesc"));
+                site.setPublished(true);
+    
+                //Overview
+                SitePage page = site.addPage();
+                page.setTitle("Overview");
+                page.setLayout(1);
+                page.addTool("sakai.iframe.site").setLayoutHints("0,0");
+                page.addTool("sakai.synoptic.announcement").setLayoutHints("0,1");
+                page.addTool("sakai.synoptic.messagecenter").setLayoutHints("1,1");
+    
+                //Announcements
+                page = site.addPage();
+                page.setTitle("Announcements");
+                page.addTool("sakai.announcements");
+    
+                //Resources
+                page = site.addPage();
+                page.setTitle("Resources");
+                page.addTool("sakai.resources");
+    
+                //Lessons
+                page = site.addPage();
+                page.setTitle("Lessons");
+                page.addTool("sakai.lessonbuildertool");
+    
+                //Site Info
+                page = site.addPage();
+                page.setTitle("Site Info");
+                page.addTool("sakai.siteinfo");
+    
+                siteService.save(site);
+                createdSiteId = site.getId();
+            } catch (IdInvalidException e) {
+                try {
+                    siteService.removeSite(site);
+                } catch (Exception e1) {
+                    log.warn("Could not cleanup site on create failure: " + e1); // BLANK
+                }
+                throw new IllegalArgumentException("Cannot create site with given id: " + createdSiteId
+                        + ":" + e.getMessage() + ". Invalid id", e);
+            } catch (IdUsedException e) {
+                try {
+                    siteService.removeSite(site);
+                } catch (Exception e1) {
+                    log.warn("Could not cleanup site on create failure: " + e1); // BLANK
+                }
+                throw new IllegalArgumentException("Cannot create site with given id: " + createdSiteId
+                        + ":" + e.getMessage() + ". Id already in use.", e);
+            } catch (PermissionException e) {
+                try {
+                    siteService.removeSite(site);
+                } catch (Exception e1) {
+                    log.warn("Could not cleanup site on create failure: " + e1); // BLANK
+                }
+                throw new SecurityException(
+                        "Current user does not have permissions to create site: " + siteid + ":"
+                        + e.getMessage(), e);
+            } catch (IdUnusedException e) {
+                try {
+                    siteService.removeSite(site);
+                } catch (Exception e1) {
+                    log.warn("Could not cleanup site on create failure: " + e1); // BLANK
+                }
+                throw new IllegalArgumentException("Cannot save new site with given id: " + createdSiteId
+                        + ":" + e.getMessage(), e);
+            }
+            return createdSiteId;
+        }
+    
+        /**
+         * content/siteId
+         */
+        @EntityCustomAction(action = "content", viewKey = "")
+        public String addSiteResource(EntityView view, Map<String, Object> params) {
+    
+            String siteId = view.getPathSegment(2);
+            // check siteId supplied, mandatory value
+            if (StringUtils.isBlank(siteId)) {
+                throw new IllegalArgumentException(
+                        "siteId must be set in order to POST content to a site, via the URL /site/content/siteId");
+            }
+    
+            // check resourceFile supplied, mandatory
+            DiskFileItem resourceFile = null;
+            if(params.get("resourceFile").getClass().equals(String.class)){
+               byte[] ba = Base64.decodeBase64((String) params.get("resourceFile"));
+               FileOutputStream fos;
+               File tempFile = null;
+               try {
+                   tempFile = File.createTempFile(params.get("fileName").toString(), "."+ params.get("extension").toString(), null);
+                   fos = new FileOutputStream(tempFile);
+                   fos.write(ba);
+               } catch (Exception e) {
+                   // TODO Auto-generated catch block
+                   e.printStackTrace();
+               }
+               try
+               {
+                   DiskFileItem fileItem = (DiskFileItem) new DiskFileItemFactory().createItem("fileData", params.get("contentType").toString(), true, params.get("fileName").toString());
+                   InputStream input =  new FileInputStream(tempFile);
+                   OutputStream os = fileItem.getOutputStream();
+                   int ret = input.read();
+                   while ( ret != -1 )
+                   {
+                       os.write(ret);
+                       ret = input.read();
+                   }
+                   os.flush();
+                   resourceFile = fileItem;
+               }catch(Exception ex){
+                   ex.printStackTrace();
+               }
+            }else{
+                resourceFile = (DiskFileItem) params.get("resourceFile");
+            }
+            if (resourceFile == null) {
+                throw new IllegalArgumentException(
+                        "resourceFile must be set in order to POST the resources to a site, via the URL /site/content/siteId");
+            }
+            String folderName = (String) params.get("folderName");
+            if (StringUtils.isBlank(folderName)) {
+                folderName = "StudyGuide";
+            }
+    
+            String folderDescription = (String) params.get("folderDescription");
+            if (StringUtils.isBlank(folderDescription)) {
+                folderDescription = "StudyGuide Description";
+            }
+            String contentType = resourceFile.getContentType();
+            String resourceFilename = resourceFile.getName();
+    
+            String siteCollectionId = contentHostingService.getSiteCollection(siteId);
+            String collectionId = "";
+    
+            try {
+                try {
+                    ContentCollectionEdit collection = contentHostingService.addCollection(siteCollectionId + folderName);
+                    collectionId = collection.getId();
+    
+                    ResourcePropertiesEdit props = collection.getPropertiesEdit();
+                    props.addProperty(ResourceProperties.PROP_DISPLAY_NAME,
+                            folderName.substring(folderName.lastIndexOf('/') + 1));
+                    props.addProperty(ResourceProperties.PROP_HIDDEN_WITH_ACCESSIBLE_CONTENT, "true");
+                    contentHostingService.commitCollection(collection);
+    
+                } catch (IdUsedException e) {
+                    collectionId = "/group/" + siteId + "/" + folderName + "/";
+                }
+    
+                ResourcePropertiesEdit resourceProperties = contentHostingService.newResourceProperties();
+                resourceProperties.addProperty(ResourceProperties.PROP_DISPLAY_NAME, resourceFilename);
+                resourceProperties.addProperty(ResourceProperties.PROP_DESCRIPTION, resourceFilename);
+                String id = null;
+                try {
+    
+                    id = collectionId + resourceFilename;
+                    ContentResource contentResource = contentHostingService.addResource(id, contentType,
+                            resourceFile.getInputStream(), resourceProperties, 0);
+                    return contentResource.getId();
+                } catch (Exception e1) {
+                    try {
+                        contentHostingService.removeResource(id);
+                    } catch (Exception e2) {
+                        log.warn("Could not remove resource: " + id + ". Exception: " + e2);
+                    }
+    //             throw new IllegalArgumentException("Could not add resource: siteId: " + siteId + "; resourceFileame: "
+    //                     + resourceFilename + " - " + e1.getMessage(), e1);
+                }
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Could not add resource: siteId: " + siteId + "; resourceFileame: "
+                        + resourceFilename + " - " + e.getMessage(), e);
+            }
+            return "failure";
+        }
+    
+        @EntityCustomAction(action = "contentDelete", viewKey = "")
+        public void deleteSiteResource(EntityView view, Map<String, Object> params) {
+            String siteId = view.getPathSegment(2);
+            // check siteId supplied, mandatory value
+            if (StringUtils.isBlank(siteId)) {
+                throw new IllegalArgumentException(
+                        "siteId must be set in order to DELETE content to a site, via the URL /site/content/siteId");
+            }
+    
+            String resourceFilename = (String) params.get("fileName");
+            if (StringUtils.isBlank(resourceFilename)) {
+                resourceFilename = "FileName";
+            }
+    
+            try {
+    
+                String resourceId = (String) params.get("resourceId");
+                if (StringUtils.isBlank(resourceId)) {
+                    throw new Exception("Invalid ResourceId");
+                }
+    
+                contentHostingService.removeResource(resourceId);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Could not delete resource: siteId: " + siteId + "; resourceFileame: "
+                        + resourceFilename + " - " + e.getMessage(), e);
+            }
+        }
+     }
