@@ -20,6 +20,17 @@
 
 package org.sakaiproject.entitybroker.providers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.fileupload.disk.DiskFileItem;
+//import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+//import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +54,9 @@ import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.RoleAlreadyDefinedException;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.content.api.ContentCollectionEdit;
+import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.entity.api.ResourcePropertiesEdit;
@@ -131,6 +145,11 @@ RESTful, ActionsExecutable, Redirectable, RequestStorable, DepthLimitable {
     private SecurityService securityService;
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    private ContentHostingService contentHostingService;
+    public void setContentHostingService(ContentHostingService contentHostingService) {
+        this.contentHostingService = contentHostingService;
     }
 
     public static String PREFIX = "site";
@@ -1177,5 +1196,25 @@ RESTful, ActionsExecutable, Redirectable, RequestStorable, DepthLimitable {
             }
         }
     }
+    
+    @EntityCustomAction(action = "search", viewKey = "")
+        public String searchSitesByTitle(EntityView view, Map<String, Object> params) {
+            // expects site/search
+        	String queryTitle = view.getPathSegment(2);		    
+    	    List<Site> sites = siteService.getSites(SelectionType.ACCESS,
+    				"course", null, null, SortType.TITLE_ASC, null);
+    
+    		//should only course sites be used?
+    //		List<Site> sites = siteService.getSites(SelectionType.ACCESS,
+    //				null, null, null, SortType.TITLE_ASC, null);
+    		
+    		for (Site courseSite : sites) {
+    			if(courseSite.getTitle().equals(queryTitle)){
+    
+    				return courseSite.getId();
+    			}
+    		}
+    		return null;
+        }
 
 }

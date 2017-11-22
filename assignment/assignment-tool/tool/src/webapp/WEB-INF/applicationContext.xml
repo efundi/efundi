@@ -15,6 +15,9 @@
         <property name="assignmentSupplementItemService" ref="org.sakaiproject.assignment.api.model.AssignmentSupplementItemService" />
 		<property name="gradebookService" ref="org.sakaiproject.service.gradebook.GradebookService" />
 		<property name="gradebookExternalService" ref="org.sakaiproject.service.gradebook.GradebookExternalAssessmentService" />
+		<property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
+        <property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService" />
+        <property name="entityManager" ref="org.sakaiproject.entity.api.EntityManager" />	
 	</bean>
 	
 </beans>

@@ -1,35 +1,40 @@
 package org.sakaiproject.assignment.entityproviders;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
+import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.assignment.api.Assignment;
 import org.sakaiproject.assignment.api.Assignment.AssignmentAccess;
+import org.sakaiproject.assignment.api.AssignmentContent;
+import org.sakaiproject.assignment.api.AssignmentService;
+import org.sakaiproject.assignment.api.AssignmentSubmission;
+import org.sakaiproject.assignment.api.AssignmentSubmissionEdit;
 import org.sakaiproject.assignment.api.model.AssignmentAllPurposeItem;
 import org.sakaiproject.assignment.api.model.AssignmentModelAnswerItem;
 import org.sakaiproject.assignment.api.model.AssignmentNoteItem;
 import org.sakaiproject.assignment.api.model.AssignmentSupplementItemService;
-import org.sakaiproject.assignment.api.AssignmentConstants;
-import org.sakaiproject.assignment.api.AssignmentContent;
-import org.sakaiproject.assignment.api.AssignmentService;
-import org.sakaiproject.assignment.api.AssignmentSubmission;
 import org.sakaiproject.assignment.impl.BaseAssignmentService;
 import org.sakaiproject.assignment.impl.MySecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.cover.ServerConfigurationService;
+import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.entity.api.Entity;
+import org.sakaiproject.entity.api.EntityManager;
 import org.sakaiproject.entity.api.Reference;
+import org.sakaiproject.entity.api.ResourcePropertiesEdit;
 import org.sakaiproject.entitybroker.EntityBroker;
 import org.sakaiproject.entitybroker.EntityReference;
 import org.sakaiproject.entitybroker.EntityView;
@@ -50,6 +55,8 @@ import org.sakaiproject.entitybroker.exception.EntityNotFoundException;
 import org.sakaiproject.entitybroker.util.AbstractEntityProvider;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
+import org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.site.api.ToolConfiguration;
@@ -58,8 +65,15 @@ import org.sakaiproject.time.cover.TimeService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sakaiproject.service.gradebook.shared.GradebookExternalAssessmentService;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
+
+import org.sakaiproject.user.api.User;
+import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.user.api.UserNotDefinedException;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
 public class AssignmentEntityProvider extends AbstractEntityProvider implements EntityProvider, 
@@ -68,7 +82,9 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 
 	public final static String ENTITY_PREFIX = "assignment";
 	private static Logger M_log = LoggerFactory.getLogger(AssignmentEntityProvider.class);
-
+	
+	private SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssZ" );
+	
 	@AllArgsConstructor
 	public class DecoratedAttachment implements Comparable<Object> {
 
@@ -381,6 +397,34 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 		}
 	}
 
+		
+		@Data
+		public class SimpleAssignmentSubmission {
+			
+			private String assignmentId;
+			private String submissionId;
+			private String submitterId;
+			private String grade;
+			private String status;
+			private String submissionType;
+			private List<Map<String, String>> attachmentList;
+	
+			public SimpleAssignmentSubmission() {
+			}
+	
+			public SimpleAssignmentSubmission(String assignmentId, String submissionId, String submitterId, String grade,
+					String status, String submissionType, List<Map<String, String>> attachmentList) {
+				super();
+				this.assignmentId = assignmentId;
+				this.submissionId = submissionId;
+				this.submitterId = submitterId;
+				this.grade = grade;
+				this.status = status;
+				this.submissionType = submissionType;
+				this.attachmentList = attachmentList;
+			}
+		}
+	
 	@Setter
 	private AssignmentService assignmentService;
 	@Setter
@@ -397,7 +441,12 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 	private GradebookService gradebookService;
 	@Setter
 	private GradebookExternalAssessmentService gradebookExternalService;
-	
+	@Setter
+	private UserDirectoryService userDirectoryService;
+	@Setter
+	private ContentHostingService contentHostingService;
+	@Setter
+	private EntityManager entityManager;
 	// HTML is deliberately not handled here, so that it will be handled by RedirectingAssignmentEntityServlet
 	public String[] getHandledOutputFormats() {
 		return new String[] { Formats.XML, Formats.JSON, Formats.FORM };
@@ -982,5 +1031,411 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 	public void setPropertyValue(String reference, String name, String value) {
 		// TODO: add ability to set properties of an assignment
 	}
-
-}
+	/**
+		 * submission/submittedUsers
+		 */
+		@EntityCustomAction(action = "submittedUsers", viewKey = "")
+		public List<String> getUserSubmissions(EntityView view, Map<String, Object> params) {
+	
+			List<String> userSubmissionsList = new ArrayList<String>();
+			String assignmentId = view.getPathSegment(2);
+			//check user can access this assignment
+			if (StringUtils.isBlank(assignmentId)) {
+				throw new SecurityException("assignmentId must be present, via the URL /assignment/submittedUsers/assignmentId");
+			}
+	
+		//get value from req
+			String callingFunctionName = "/assignment/submission";
+			
+			// Assignment assignment = getAssignment(assignmentId,
+			// callingFunctionName);
+			String startDateParam = (String) params.get("startDate");
+			String endDateParam = (String) params.get("endDate");
+			Date startDate = null;
+			Date endDate = null;
+			
+			if (!StringUtils.isBlank(startDateParam)){
+				try {
+					startDate = simpleDateFormat.parse(startDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : startDate: " + startDateParam, assignmentId);
+				}	
+			} else {	
+				
+				Calendar calStart = new GregorianCalendar();
+				calStart.setTime(new Date());
+			calStart.set(Calendar.HOUR_OF_DAY, 0);
+				calStart.set(Calendar.MINUTE, 0);
+				calStart.set(Calendar.SECOND, 0);
+				calStart.set(Calendar.MILLISECOND, 0);
+				Date midnightYesterday = calStart.getTime();
+				startDateParam = simpleDateFormat.format(midnightYesterday);			
+				try {				
+					startDate = simpleDateFormat.parse(startDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : startDate: " + startDateParam, assignmentId);
+				}	
+				
+			}
+		
+			if (!StringUtils.isBlank(endDateParam)){
+				try {
+					endDate = simpleDateFormat.parse(endDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : endDate: " + startDateParam, assignmentId);
+				}			
+			} else {			
+				Calendar calEnd = new GregorianCalendar();
+				calEnd.setTime(new Date());
+				calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR)+1);
+				calEnd.set(Calendar.HOUR_OF_DAY, 0);
+				calEnd.set(Calendar.MINUTE, 0);
+				calEnd.set(Calendar.SECOND, 0);
+				calEnd.set(Calendar.MILLISECOND, 0);
+				Date midnightTonight = calEnd.getTime();
+				endDateParam = simpleDateFormat.format(midnightTonight);		
+				try {
+					endDate = simpleDateFormat.parse(endDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : endDate: " + endDateParam, assignmentId);
+				}	
+			}
+	
+			try {
+				Assignment assignment = assignmentService.getAssignment(assignmentId);
+				
+				// If a single Student's submissions have been requested, otherwise return all submissions
+				String studentUserId = (String) params.get("studentUserId");
+				User user = null;
+				if (!StringUtils.isBlank(studentUserId)){ // If userid param has a value, only return submissions for this user
+					try {
+						user = userDirectoryService.getUserByEid(studentUserId);
+					} catch (UserNotDefinedException e) {
+						throw new EntityNotFoundException("Can't find user: studentUserId: " + studentUserId, assignmentId);
+					}
+					AssignmentSubmission assignmentSubmission = assignmentService.getSubmission(assignment.getReference(), user);		
+					if(assignmentSubmission == null){
+						return userSubmissionsList;
+					}				
+					if(allowAddSubmission(assignmentSubmission, startDate, endDate)){//If no submission exist, dont add
+						userSubmissionsList.add(studentUserId);			
+					}				
+				} else { // If userid param not present, return all submissions
+					List<AssignmentSubmission> assignmentSubmissions = assignmentService.getSubmissions(assignment);
+					for (AssignmentSubmission assignmentSubmission : assignmentSubmissions) {//If no submission exist, dont add
+						if(allowAddSubmission(assignmentSubmission, startDate, endDate)){
+							try {
+								user = userDirectoryService.getUser(assignmentSubmission.getSubmitterId());
+							} catch (UserNotDefinedException e) {
+								throw new EntityNotFoundException("Can't find user: studentUserId: " + assignmentSubmission.getSubmitterId(), assignmentId);
+							}
+							if(user != null){
+								userSubmissionsList.add(user.getEid());			
+							}
+						}
+					}			
+				}			
+			} catch (IdUnusedException e) {
+				throw new EntityNotFoundException("Invalid assignment id: " + assignmentId, assignmentId);
+			} catch (PermissionException e) {
+				throw new EntityNotFoundException("No access to assignment: " + assignmentId, assignmentId);
+			} 
+			//remove duplicates
+	        if(!userSubmissionsList.isEmpty()){
+	//    		Set<String> set = new HashSet<String>(userSubmissionsList);  
+	//            List<String> newlist = new ArrayList<String>(set); 
+	            userSubmissionsList = new ArrayList<String>(new LinkedHashSet<String>(userSubmissionsList));
+	        }
+			return userSubmissionsList;
+		}
+		
+		/**
+		 * submission/assignmentId
+		 */
+		@EntityCustomAction(action = "submission", viewKey = "")
+		public List<SimpleAssignmentSubmission> getAssignmentSubmission(EntityView view,
+				Map<String, Object> params) {
+	
+			List<SimpleAssignmentSubmission> submissionList = new ArrayList<SimpleAssignmentSubmission>();
+			String assignmentId = view.getPathSegment(2);
+			//check user can access this assignment
+		if (StringUtils.isBlank(assignmentId)) {
+				throw new SecurityException("assignmentId must be present, via the URL /assignment/submission/assignmentId");
+			}
+	
+			//get value from req
+			String callingFunctionName = "/assignment/submission";
+			
+			// Assignment assignment = getAssignment(assignmentId,
+			// callingFunctionName);
+			String startDateParam = (String) params.get("startDate");
+			String endDateParam = (String) params.get("endDate");
+			Date startDate = null;
+			Date endDate = null;
+			
+			if (!StringUtils.isBlank(startDateParam)){
+				try {
+					startDate = simpleDateFormat.parse(startDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : startDate: " + startDateParam, assignmentId);
+				}	
+			} else {	
+				
+				Calendar calStart = new GregorianCalendar();
+				calStart.setTime(new Date());
+			calStart.set(Calendar.HOUR_OF_DAY, 0);
+				calStart.set(Calendar.MINUTE, 0);
+				calStart.set(Calendar.SECOND, 0);
+				calStart.set(Calendar.MILLISECOND, 0);
+				Date midnightYesterday = calStart.getTime();
+				startDateParam = simpleDateFormat.format(midnightYesterday);			
+				try {				
+					startDate = simpleDateFormat.parse(startDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : startDate: " + startDateParam, assignmentId);
+			}	
+				
+			}
+		
+			if (!StringUtils.isBlank(endDateParam)){
+				try {
+					endDate = simpleDateFormat.parse(endDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : endDate: " + startDateParam, assignmentId);
+				}			
+			} else {			
+				Calendar calEnd = new GregorianCalendar();
+				calEnd.setTime(new Date());
+				calEnd.set(Calendar.DAY_OF_YEAR, calEnd.get(Calendar.DAY_OF_YEAR)+1);
+				calEnd.set(Calendar.HOUR_OF_DAY, 0);
+				calEnd.set(Calendar.MINUTE, 0);
+				calEnd.set(Calendar.SECOND, 0);
+			calEnd.set(Calendar.MILLISECOND, 0);
+				Date midnightTonight = calEnd.getTime();
+				endDateParam = simpleDateFormat.format(midnightTonight);		
+				try {
+					endDate = simpleDateFormat.parse(endDateParam);
+				} catch (ParseException e) {
+					throw new EntityNotFoundException("Date value parameter invalid format : endDate: " + endDateParam, assignmentId);
+				}	
+		}
+	
+			try {
+				Assignment assignment = assignmentService.getAssignment(assignmentId);
+				
+				// If a single Student's submissions have been requested, otherwise return all submissions
+				String studentUserId = (String) params.get("studentUserId");
+				User user = null;
+				if (!StringUtils.isBlank(studentUserId)){ // If userid param has a value, only return submissions for this user
+					try {
+						user = userDirectoryService.getUserByEid(studentUserId);
+					} catch (UserNotDefinedException e) {
+						throw new EntityNotFoundException("Can't find user: studentUserId: " + studentUserId, assignmentId);
+					}
+					AssignmentSubmission assignmentSubmission = assignmentService.getSubmission(assignment.getReference(), user);		
+					if(assignmentSubmission == null){
+					return submissionList;
+					}				
+					if(allowAddSubmission(assignmentSubmission, startDate, endDate)){//If no submission exist, dont add
+						createSimpleAssignmentSubmission(submissionList, studentUserId, assignmentSubmission);					
+					}				
+				} else { // If userid param not present, return all submissions
+					List<AssignmentSubmission> assignmentSubmissions = assignmentService.getSubmissions(assignment);
+				for (AssignmentSubmission assignmentSubmission : assignmentSubmissions) {//If no submission exist, dont add
+						if(allowAddSubmission(assignmentSubmission, startDate, endDate)){
+							try {
+								user = userDirectoryService.getUser(assignmentSubmission.getSubmitterId());
+							} catch (UserNotDefinedException e) {
+								throw new EntityNotFoundException("Can't find user: studentUserId: " + assignmentSubmission.getSubmitterId(), assignmentId);
+							}
+							if(user != null){
+								createSimpleAssignmentSubmission(submissionList, user.getEid(), assignmentSubmission);	
+							}
+						}
+					}			
+				}			
+			} catch (IdUnusedException e) {
+				throw new EntityNotFoundException("Invalid assignment id: " + assignmentId, assignmentId);
+			} catch (PermissionException e) {
+				throw new EntityNotFoundException("No access to assignment: " + assignmentId, assignmentId);
+			} 
+			return submissionList;
+		}
+	
+		private void createSimpleAssignmentSubmission(List<SimpleAssignmentSubmission> submissionList, String studentUserId,
+				AssignmentSubmission assignmentSubmission) {
+			List submissionAttachments = assignmentSubmission.getSubmittedAttachments();
+			List<Map<String, String>> attachmentList = new ArrayList<Map<String,String>>();
+			for (int q = 0; q < submissionAttachments.size(); q++) {
+				Map<String, String> attachmentMap = new HashMap<String, String>();
+				Reference ref = (Reference) submissionAttachments.get(q);
+				Entity ent = ref.getEntity();
+				attachmentMap.put("attachmentId", ent.getId());
+				attachmentMap.put("attachmentURL", ent.getUrl());			
+	//			String encodedData = null;			
+	//			ContentResource res;
+	//			try {
+	//				res = contentHostingService.getResource (ent.getId());
+	//				byte[] data = res.getContent();
+	//				encodedData = new String(Base64.encodeBase64(data));
+	//				attachmentMap.put("attachmentEncodedData", encodedData);
+	//			} catch (Exception e) {
+	//				//If something goes wrong here, don't add to list
+	//				return;
+	//			}
+				attachmentList.add(attachmentMap);
+		}
+			// use getGradeDisplay (Assignments grade is saved with value x 10)
+			SimpleAssignmentSubmission submission = new SimpleAssignmentSubmission(assignmentSubmission.getAssignmentId(), assignmentSubmission.getId(),
+					studentUserId, assignmentSubmission.getGradeDisplay(), assignmentSubmission.getStatus(), "", attachmentList);
+			submissionList.add(submission);
+		}
+		
+		private boolean allowAddSubmission(AssignmentSubmission assignmentSubmission, Date startDate, Date endDate){
+			
+			Time timeSubmitted = assignmentSubmission.getTimeSubmitted();		
+			
+			//If no submission exist
+			if(timeSubmitted == null){
+				return false;
+			}
+	
+			// If no start date, all submissions for that day
+	//		if (startDate == null){
+	//			return true;
+	//		}
+	
+			// If only start date, all submissions after that date
+	//		if (startDate != null && endDate == null){
+	//
+	//			//replace Sakai Time API once Assignments is updated with correct Date API (as stated in deprecated comments!) 
+	//			Time now = TimeService.newTime();				
+	//			if(timeSubmitted.after(now)){
+	//				return true;
+	//			}
+	//			return false;
+	//		}
+	
+			// If start & end date, submissions between those dates
+			if (startDate != null && endDate != null){
+	
+				//replace Sakai Time API once Assignments is updated with correct Date API (as stated in deprecated comments!) 
+				Time startTime = TimeService.newTime(startDate.getTime());			
+				Time endTime = TimeService.newTime(endDate.getTime());			
+				
+				if(timeSubmitted.after(startTime) && timeSubmitted.before(endTime)){
+					return true;
+				}
+				return false;
+			}
+			return false;
+		}	
+		
+		/**
+		 * updateSubmission/assignmentId
+		 */
+		@EntityCustomAction(action = "updateSubmission", viewKey = "")
+		public String updateSubmission(EntityView view, Map<String, Object> params) {
+			String siteId = view.getPathSegment(2);
+			// check user can access this site
+			try {
+				Site site = siteService.getSite(siteId);
+			} catch (IdUnusedException e) {
+				throw new EntityNotFoundException("Invalid siteId: " + siteId, siteId);
+			}
+			Assignment assignment = null;
+			String assignmentId = (String) params.get("assignmentId");
+			// check assignmentId supplied, mandatory value
+			if (StringUtils.isBlank(assignmentId)) {
+				throw new IllegalArgumentException(
+						"assignmentId must be set in order to update the Assignment submission, via the URL /assignment/updateSubmission/assignmentId");
+			} else {
+				try {
+					assignment = assignmentService.getAssignment(assignmentId);
+				} catch (Exception e) {
+					throw new EntityNotFoundException("Invalid assignment id: " + assignmentId, assignmentId);
+				}
+			}
+	
+			// check submissionId supplied, mandatory
+			String submissionId = (String) params.get("submissionId");
+			if (submissionId == null) {
+				throw new IllegalArgumentException(
+						"submissionId must be provided via the URL /assignment/updateSubmission/assignmentId");
+			}
+	
+			// check studentId supplied, mandatory
+			String studentId = (String) params.get("studentId");
+			if (studentId == null) {
+				throw new IllegalArgumentException(
+						"studentId must be provided via the URL /assignment/updateSubmission/assignmentId");
+			}
+	
+			// check studentId supplied, mandatory
+		String grade = (String) params.get("grade");
+			AssignmentSubmissionEdit assignmentSubmissionEdit = null;
+			if (grade == null && grade.length() > 0 && !"0".equals(grade)) {
+				throw new IllegalArgumentException(
+						"grade must be provided via the URL /assignment/updateSubmission/assignmentId");
+			} else {
+				try {
+				// make sure assignment grade scale is of type score/points
+					int typeOfGrade = assignment.getContent().getTypeOfGrade();
+					if (typeOfGrade != Assignment.SCORE_GRADE_TYPE) {
+						throw new IllegalArgumentException(
+								"Can't update assignments that does not have point for grade scale, assignmentId: "
+										+ assignmentId);
+					}
+	
+					try {
+						Integer.parseInt(grade);
+					} catch (NumberFormatException e) {
+						try {
+							Float.parseFloat(grade);
+						} catch (Exception e1) {
+							throw new IllegalArgumentException(
+									"grade value is invalid for points type via the URL /assignment/updateSubmission/assignmentId");
+						}
+				}
+					// points grades must be multiple by 10
+					grade = grade + "0";
+					// update grade
+					assignmentSubmissionEdit = assignmentService.editSubmission(submissionId);
+				assignmentSubmissionEdit.setGrade(grade);
+					assignmentSubmissionEdit.setGraded(true);
+					assignmentSubmissionEdit.setGradedBy(AssignmentEntityProvider.class.getName());
+					assignmentSubmissionEdit.setGradeReleased(true);
+	
+					// check resourceId supplied, mandatory
+					String resourceId = (String) params.get("resourceId");
+					if (resourceId == null) {
+						throw new IllegalArgumentException(
+								"resourceId must be provided via the URL /assignment/updateSubmission/assignmentId");
+					}
+	
+					// check submissionAttachment supplied, mandatory
+					DiskFileItem submissionAttachment = (DiskFileItem) params.get("submissionAttachment");
+					if (submissionAttachment == null) {
+						throw new IllegalArgumentException(
+								"submissionAttachment must be set in order to update the Assignment submission, via the URL /assignment/updateSubmission/assignmentId");
+					}
+	
+					ResourcePropertiesEdit rpe = contentHostingService.newResourceProperties();
+					rpe.addProperty(rpe.PROP_DISPLAY_NAME, submissionAttachment.getName());
+	
+					ContentResource attachment = contentHostingService.addAttachmentResource(submissionAttachment.getName(),
+							siteId, "Assignments", submissionAttachment.getContentType(),
+							submissionAttachment.getInputStream(), rpe);
+	
+					Reference ref = entityManager.newReference(attachment.getReference());
+					assignmentSubmissionEdit.addSubmittedAttachment(ref);
+					assignmentService.commitEdit(assignmentSubmissionEdit);
+	
+				} catch (Exception e) {
+					throw new EntityNotFoundException("Could not update Assignment with assignmentId: " + assignmentId
+							+ ", submissionId: " + submissionId, assignmentId, e);
+				}
+			}
+			return "SUCCESS";
+		}
+	 }
