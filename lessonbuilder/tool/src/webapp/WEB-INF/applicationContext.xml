@@ -3,6 +3,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="applicationContextProvder" class="org.sakaiproject.lessonbuildertool.util.ApplicationContextProvider"/>
+    
    <!-- Use the Sakai session factory, pre-configured, instead of one local to TaskList
         we are adding our HBM files to the Sakai session factory instead of creating
         our own copy of it -->
@@ -93,6 +95,10 @@ simplePageBean.hasReleaseDate,
 simplePageBean.height,
 simplePageBean.hidePage,
 simplePageBean.importCc,
+simplePageBean.importDocx,
+simplePageBean.exportEpub,
+simplePageBean.exportDocx,
+simplePageBean.exportError,
 simplePageBean.importtop,
 simplePageBean.indentLevel,
 simplePageBean.isCaption,
@@ -339,6 +345,14 @@ simplePageBean.peerEvalAllowSelfGrade
     	</constructor-arg>
     	</bean>
 
+        <bean id="org.sakaiproject.lessonbuildertool.service.DataExportService"
+	      class="org.sakaiproject.lessonbuildertool.service.DataExportServiceImpl">
+            <property name="contentHostingService"><ref bean="org.sakaiproject.content.api.ContentHostingService"/></property>
+            <property name="simplePageToolDao" ref="org.sakaiproject.lessonbuildertool.model.SimplePageToolDao" />
+            <property name="siteService" ref="org.sakaiproject.site.api.SiteService"/>
+            <property name="publishedAssessmentFacadeQueries"><ref bean="PublishedAssessmentFacadeQueries" /></property>
+	</bean>
+
  	<bean id="org.sakaiproject.lessonbuildertool.ccexport.CCExport"
 	      class="org.sakaiproject.lessonbuildertool.ccexport.CCExport">
 	  <property name="contentHostingService"><ref bean="org.sakaiproject.content.api.ContentHostingService"/></property>
@@ -349,6 +363,49 @@ simplePageBean.peerEvalAllowSelfGrade
 	  <property name="messageLocator" ref="messageLocator"/>
 	  <property name="simplePageToolDao" ref="org.sakaiproject.lessonbuildertool.model.SimplePageToolDao" />
 	</bean>
+        
+        <bean id="org.sakaiproject.lessonbuildertool.docximport.DocxImport"
+              class="org.sakaiproject.lessonbuildertool.docximport.DocxImport">
+        </bean>
+        
+        <bean id="org.sakaiproject.lessonbuildertool.epubexport.EpubExport"
+              class="org.sakaiproject.lessonbuildertool.epubexport.EpubExport">
+            <property name="contentHostingService">
+                <ref bean="org.sakaiproject.content.api.ContentHostingService"/>
+            </property>
+            <property name="dataExportService" ref="org.sakaiproject.lessonbuildertool.service.DataExportService" />
+            <property name="htmlCleaner" ref="org.sakaiproject.lessonbuildertool.util.HtmlCleanerUtil"/>
+            <property name="exportHelper" ref="org.sakaiproject.lessonbuildertool.util.ExportHelper"/>
+            <property name="messageLocator" ref="messageLocator"/>
+        </bean>
+
+        <bean id="org.sakaiproject.lessonbuildertool.docxexport.DocxExport"
+              class="org.sakaiproject.lessonbuildertool.docxexport.DocxExport">
+            <property name="dataExportService" ref="org.sakaiproject.lessonbuildertool.service.DataExportService" />
+            <property name="messageLocator" ref="messageLocator"/>
+            <property name="htmlCleaner" ref="org.sakaiproject.lessonbuildertool.util.HtmlCleanerUtil"/>
+            <property name="exportHelper" ref="org.sakaiproject.lessonbuildertool.util.ExportHelper"/>
+            <property name="xHTMLImageHandler">
+                <ref bean="org.docx4j.convert.in.xhtml.XHTMLImageHandler"/>
+            </property>
+        </bean>
+ 
+        <bean id="org.docx4j.convert.in.xhtml.XHTMLImageHandler"
+              class="org.sakaiproject.lessonbuildertool.util.XHTMLImageHandlerSakai">
+            <property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService"/>
+            <property name="dataExportService" ref="org.sakaiproject.lessonbuildertool.service.DataExportService" />
+        </bean>
+    
+        <bean id="org.sakaiproject.lessonbuildertool.util.HtmlCleanerUtil"
+              class="org.sakaiproject.lessonbuildertool.util.HtmlCleanerUtil">
+            <property name="dataExportService" ref="org.sakaiproject.lessonbuildertool.service.DataExportService" />
+            <property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService"/>
+        </bean>   
+
+        <bean id="org.sakaiproject.lessonbuildertool.util.ExportHelper"
+              class="org.sakaiproject.lessonbuildertool.util.ExportHelper">
+            <property name="messageLocator" ref="messageLocator"/>
+        </bean>
 
  	<bean id="org.sakaiproject.lessonbuildertool.ccexport.SamigoExport"
 	      class="org.sakaiproject.lessonbuildertool.ccexport.SamigoExport"
@@ -394,6 +451,21 @@ simplePageBean.peerEvalAllowSelfGrade
 	  <property name="messageLocator" ref="messageLocator"/>
 	  <property name="simplePageToolDao" ref="org.sakaiproject.lessonbuildertool.model.SimplePageToolDao" />
 	</bean>
+
+        <bean parent="viewParamsRegistrarParent" id="importDocx" >
+            <property name="viewID" value="importDocx" />
+            <property name="viewParamsClass" value="org.sakaiproject.lessonbuildertool.tool.view.ImportDocxViewParameters" />
+        </bean>
+   
+        <bean parent="viewParamsRegistrarParent" id="exportDocx" >
+            <property name="viewID" value="exportDocx" />
+            <property name="viewParamsClass" value="org.sakaiproject.lessonbuildertool.tool.view.ExportDocxViewParameters" />
+        </bean>
+ 
+        <bean parent="viewParamsRegistrarParent" id="exportEpub">
+            <property name="viewID" value="exportEpub" />
+            <property name="viewParamsClass" value="org.sakaiproject.lessonbuildertool.tool.view.ExportEpubViewParameters" />
+        </bean>
 
 	<bean parent="viewParamsRegistrarParent">
           <property name="viewID" value="exportCc" />
