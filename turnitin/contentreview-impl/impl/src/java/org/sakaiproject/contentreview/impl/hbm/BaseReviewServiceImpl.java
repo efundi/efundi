@@ -33,10 +33,12 @@ import org.sakaiproject.contentreview.exception.SubmissionException;
 import org.sakaiproject.contentreview.model.ContentReviewItem;
 import org.sakaiproject.contentreview.service.ContentReviewService;
 import org.sakaiproject.contentreview.service.ContentReviewSiteAdvisor;
+import org.sakaiproject.genericdao.api.search.Order;
 import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.turnitin.util.TurnitinAPIUtil;
 import org.sakaiproject.user.api.UserDirectoryService;
 
 public abstract class BaseReviewServiceImpl implements ContentReviewService {
@@ -70,7 +72,7 @@ public abstract class BaseReviewServiceImpl implements ContentReviewService {
 		this.siteAdvisor = crsa;
 	}
 
-	public void queueContent(String userId, String siteId, String taskId, List<ContentResource> content)
+	public void queueContent(String userId, String siteId, String taskId, List<ContentResource> content, String submissionId, boolean isResubmission)
 			throws QueueException {
 
 		if (content == null || content.size() < 1) {
@@ -78,11 +80,11 @@ public abstract class BaseReviewServiceImpl implements ContentReviewService {
 		}
 
 		for (ContentResource contentRes : content) {
-			queueContent(userId, siteId, taskId, contentRes.getId());
+			queueContent(userId, siteId, taskId, contentRes.getId(), submissionId, isResubmission);
 		}
 	}
 
-	public void queueContent(String userId, String siteId, String taskId, String contentId)
+	public void queueContent(String userId, String siteId, String taskId, String contentId, String submissionId, boolean isResubmission)
 			throws QueueException {
 	
 		log.debug("Method called queueContent(" + userId + "," + siteId + "," + contentId + ")");
@@ -101,7 +103,7 @@ public abstract class BaseReviewServiceImpl implements ContentReviewService {
 			log.debug("Generating default taskId");
 			taskId = siteId + " " + defaultAssignmentName;
 		}
-
+		userId = TurnitinAPIUtil.removeDiacritics(userId);
 		log.debug("Adding content: " + contentId + " from site " + siteId
 					+ " and user: " + userId + " for task: " + taskId + " to submission queue");
 
@@ -119,7 +121,12 @@ public abstract class BaseReviewServiceImpl implements ContentReviewService {
 		ContentReviewItem item = new ContentReviewItem(userId, siteId, taskId, contentId, new Date(),
 			ContentReviewItem.NOT_SUBMITTED_CODE);
 		item.setNextRetryTime(new Date());
+		item.setUrlAccessed(false);
+		item.setSubmissionId(submissionId);
+		if(isResubmission){
+			item.setResubmission(true);
 		dao.save(item);
+	}
 	}
 
 	private List<ContentReviewItem> getItemsByContentId(String contentId) {

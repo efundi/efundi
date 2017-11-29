@@ -412,7 +412,7 @@ public class TurnitinReviewServiceImpl extends BaseReviewServiceImpl {
 		String uem = getEmail(user);
 		String ufn = getUserFirstName(user);
 		String uln = getUserLastName(user);
-		String uid = item.getUserId();
+		String uid = TurnitinAPIUtil.removeDiacritics(item.getUserId());
 		String utp = "1";
 
 		Map params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(),
@@ -1305,7 +1305,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 				"ufn", ufn,
 				"uln", uln,
 				"utp", utp,
-				"uid", uid
+				"uid", TurnitinAPIUtil.removeDiacritics(userId)
 		);
 
 		Document document = turnitinConn.callTurnitinReturnDocument(params);
@@ -1597,7 +1597,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 			String ptl =  userEid  + ":" + fileName;
 			String ptype = "2";
 
-			String uid = currentItem.getUserId();
+			String uid = TurnitinAPIUtil.removeDiacritics(currentItem.getUserId());
 			String cid = currentItem.getSiteId();
 			String assignid = currentItem.getTaskId();
 
@@ -2396,8 +2396,9 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 	 * @param user a sakai user
 	 * @return the first name or at least an initial if possible, "X" if no fn can be made
 	 */
-	private String getUserFirstName(User user) {
+	protected String getUserFirstName(User user) {
 		String ufn = user.getFirstName().trim();
+		ufn = TurnitinAPIUtil.removeDiacritics(ufn);
 		if (ufn == null || ufn.equals("")) {
 			boolean genFN = (boolean) serverConfigurationService.getBoolean("turnitin.generate.first.name", true);
 			if (genFN) {
@@ -2419,7 +2420,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 	 * @param user
 	 * @return
 	 */
-	private String getUserLastName(User user){
+	protected String getUserLastName(User user){
 		String uln = user.getLastName().trim();
 		if (uln == null || uln.equals("")) {
 			boolean genLN = serverConfigurationService.getBoolean("turnitin.generate.last.name", false);
@@ -2433,7 +2434,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 				}
 			}
 		}
-		return uln;
+		return TurnitinAPIUtil.removeDiacritics(uln);
 	}
 	
 	public String getLocalizedStatusMessage(String messageCode, String userRef) {
