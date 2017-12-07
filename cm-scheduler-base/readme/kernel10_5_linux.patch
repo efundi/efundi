@@ -1,0 +1,18 @@
+Index: kernel-impl/src/main/java/org/sakaiproject/authz/impl/DbAuthzGroupService.java
+===================================================================
+--- kernel-impl/src/main/java/org/sakaiproject/authz/impl/DbAuthzGroupService.java	(revision 321902)
++++ kernel-impl/src/main/java/org/sakaiproject/authz/impl/DbAuthzGroupService.java	(working copy)
+@@ -2442,6 +2442,13 @@
+ 						active = false;
+ 					}
+ 
++					for(UserAndRole uar : grants){
++						if(uar.userId.equals(userId)){
++						active = uar.active;
++						break;
++						}
++					}
++
+ 					toInsert.add(new RealmAndRole(realmId, role, active, true));
+ 				}
+ 			}

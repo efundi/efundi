@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN"
+	"http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+
+	<!-- This is the actual bean to execute (with an optional parameter that 
+		is consumed by the job) Things to note: - the 'id' is arbitrary but must 
+		be the same for this bean definition AND the following one - the 'class' 
+		is the fully qualified package name of your Java class - you can inject any 
+		properties or services into your job in this bean. -->
+	<bean id="za.ac.nwu.jobs.CourseMgmtPopulationJob" class="za.ac.nwu.jobs.CourseMgmtPopulationJob">
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+		<property name="cmAdmin"
+			ref="org.sakaiproject.coursemanagement.api.CourseManagementAdministration" />
+		<property name="cmService"
+			ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+		<property name="userDirectoryService"
+			ref="org.sakaiproject.user.api.UserDirectoryService" />
+		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+	</bean>
+
+	<!-- This is the helper that will register the above bean with the ScheduleManager 
+		Things to note: - id must end with the same bean id from above - class must 
+		be the class of the SpringJobBeanWrapper, ie don't change it. - the beanId 
+		property must match the bean id from above - the jobName property is the 
+		text that will be rendered in the list of jobs in Sakai -->
+	<bean
+		id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.za.ac.nwu.jobs.CourseMgmtPopulationJob"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper" init-method="init">
+
+		<property name="beanId">
+			<value>za.ac.nwu.jobs.CourseMgmtPopulationJob</value>
+		</property>
+
+		<property name="jobName">
+			<value>NWU Course Management Data Population</value>
+		</property>
+
+		<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+
+	</bean>
+	
+		
+	<!-- This is the actual bean to execute (with an optional parameter that 
+		is consumed by the job) Things to note: - the 'id' is arbitrary but must 
+		be the same for this bean definition AND the following one - the 'class' 
+		is the fully qualified package name of your Java class - you can inject any 
+		properties or services into your job in this bean. -->
+	<bean id="za.ac.nwu.jobs.StudentCourseChangeJob" class="za.ac.nwu.jobs.StudentCourseChangeJob">
+
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+		<property name="cmAdmin"
+			ref="org.sakaiproject.coursemanagement.api.CourseManagementAdministration" />
+		<property name="cmService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+		<property name="userDirectoryService"
+			ref="org.sakaiproject.user.api.UserDirectoryService" />		
+		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+			
+	</bean>
+	
+	<!-- This is the helper that will register the above bean with the ScheduleManager 
+		Things to note: - id must end with the same bean id from above - class must 
+		be the class of the SpringJobBeanWrapper, ie don't change it. - the beanId 
+		property must match the bean id from above - the jobName property is the 
+		text that will be rendered in the list of jobs in Sakai -->
+	<bean
+		id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.za.ac.nwu.jobs.StudentCourseChangeJob"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper" init-method="init">
+
+		<property name="beanId">
+			<value>za.ac.nwu.jobs.StudentCourseChangeJob</value>
+		</property>
+
+		<property name="jobName">
+			<value>NWU Student Course Change Management</value>
+		</property>
+
+		<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+
+	</bean>
+	
+	
+    <!-- This QuartJob was only used once to remove Lecturers from course participant list were they don't belong -->
+    
+	<!-- This is the actual bean to execute (with an optional parameter that 
+		is consumed by the job) Things to note: - the 'id' is arbitrary but must 
+		be the same for this bean definition AND the following one - the 'class' 
+		is the fully qualified package name of your Java class - you can inject any 
+		properties or services into your job in this bean. -->
+	<!-- <bean id="za.ac.nwu.jobs.RemoveLecturersJob" class="za.ac.nwu.jobs.RemoveLecturersJob">
+
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+		<property name="cmAdmin"
+			ref="org.sakaiproject.coursemanagement.api.CourseManagementAdministration" />
+		<property name="cmService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+		<property name="userDirectoryService"
+			ref="org.sakaiproject.user.api.UserDirectoryService" />		
+		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+			
+	</bean> -->
+	
+	<!-- This is the helper that will register the above bean with the ScheduleManager 
+		Things to note: - id must end with the same bean id from above - class must 
+		be the class of the SpringJobBeanWrapper, ie don't change it. - the beanId 
+		property must match the bean id from above - the jobName property is the 
+		text that will be rendered in the list of jobs in Sakai -->
+	<!-- <bean
+		id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.za.ac.nwu.jobs.RemoveLecturersJob"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper" init-method="init">
+
+		<property name="beanId">
+			<value>za.ac.nwu.jobs.RemoveLecturersJob</value>
+		</property>
+
+		<property name="jobName">
+			<value>NWU Remove Lecturers Management</value>
+		</property>
+
+		<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+
+	</bean>  --> 
+	
+	<!-- This is the actual bean to execute (with an optional parameter that 
+		is consumed by the job) Things to note: - the 'id' is arbitrary but must 
+		be the same for this bean definition AND the following one - the 'class' 
+		is the fully qualified package name of your Java class - you can inject any 
+		properties or services into your job in this bean. -->
+	<bean id="za.ac.nwu.jobs.LinkStudentsToSiteJob" class="za.ac.nwu.jobs.LinkStudentsToSiteJob">
+
+		<property name="userDirectoryService"
+			ref="org.sakaiproject.user.api.UserDirectoryService" />					
+		<property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+		<property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />		
+		<property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+		<property name="securityService" ref="org.sakaiproject.authz.api.SecurityService" />
+		<property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+		<property name="iniFilePath" value="sakai.ini"></property>
+		<property name="userRole" value="Student"></property>
+			
+	</bean> 
+	
+	<!-- This is the helper that will register the above bean with the ScheduleManager 
+		Things to note: - id must end with the same bean id from above - class must 
+		be the class of the SpringJobBeanWrapper, ie don't change it. - the beanId 
+		property must match the bean id from above - the jobName property is the 
+		text that will be rendered in the list of jobs in Sakai -->
+	 <bean
+		id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.za.ac.nwu.jobs.LinkStudentsToSiteJob"
+		class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper" init-method="init">
+
+		<property name="beanId">
+			<value>za.ac.nwu.jobs.LinkStudentsToSiteJob</value>
+		</property>
+
+		<property name="jobName">
+			<value>NWU Link Students to Site Management</value>
+		</property>
+
+		<property name="schedulerManager">
+			<ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+		</property>
+
+	</bean>  
+
+</beans>
