@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to='sakaistudentlinkgwt'>
+	<!-- Inherit the core Web Toolkit stuff. -->
+	<inherits name='com.google.gwt.user.User' />
+	<!-- Inherit the default GWT style sheet. You can change -->
+	<!-- the theme of your GWT application by uncommenting -->
+	<!-- any one of the following lines. -->
+	<inherits name='com.google.gwt.user.theme.standard.Standard' />
+	<!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
+	<!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/> -->
+
+	<!-- Inherit Internationalization functionality -->
+	<inherits name="com.google.gwt.i18n.I18N" />
+	<!-- <extend-property name="locale" values="af_ZA"/> -->
+	
+
+	<!-- Specify the app entry point class. -->
+	<entry-point class='edu.nwu.sakai.studentlink.client.SakaiStudentLinkGWT' />
+
+	<!-- Specify the paths for translatable code -->
+	<source path='client' />
+	<source path='resources' />
+	<source path='shared' />
+	
+	<add-linker name="xsiframe" />
+	
+	<set-configuration-property name="devModeRedirectEnabled" value="true" />
+	<set-property name="compiler.useSourceMaps" value="true" />
+</module>

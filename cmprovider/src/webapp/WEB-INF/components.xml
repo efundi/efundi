@@ -41,4 +41,15 @@
 
   <bean id="org.sakaiproject.cmprovider.SectionCategoryEntityProvider"
     class="org.sakaiproject.cmprovider.SectionCategoryEntityProvider" parent="AbstractCmEntityProvider" />
+      
+  <bean id="NWUCmEntityProvider"
+    class="org.sakaiproject.cmprovider.NWUCmEntityProvider" init-method="init">
+    <property name="cmService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService" />
+    <property name="cmAdmin" ref="org.sakaiproject.coursemanagement.api.CourseManagementAdministration" />
+    <property name="developerHelperService" ref="org.sakaiproject.entitybroker.DeveloperHelperService" />
+    <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService" />
+    <property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
+    <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+    <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager" />
+  </bean>  
 </beans>

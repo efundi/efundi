@@ -2768,6 +2768,13 @@ public abstract class DbAuthzGroupService extends BaseAuthzGroupService implemen
 								active = false;
 							}
 
+							for(UserAndRole uar : grants){
+								if(uar.userId.equals(userId)){
+		    						active = uar.active;
+		    						break;
+								}
+							}
+
 							toInsert.add(new UserAndRole(userId, role, active, true));
 						}
 					}
