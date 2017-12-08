@@ -1,0 +1,42 @@
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 10px 0px 10px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 3em;
+  font-weight: bold;
+  color: black;
+  margin: 15px 0px 25px;
+  text-align: center;
+}
+
+.headerTable {
+    background-color: #94C2E3;
+    border-bottom: 1px solid black;
+    color: #454A4F;
+    font-size: 100%;
+    margin: 0;
+    width: 100%;
+}
+
+.cellTable {
+      border: 1px solid #ccc;
+      text-align: left;
+}
+
+.menuTable {
+    border: 1px solid black;
+    font-size: 100%;
+    margin: 0;
+}
+
+.centerImg {
+	text-align: center;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding: 0px;
+}
