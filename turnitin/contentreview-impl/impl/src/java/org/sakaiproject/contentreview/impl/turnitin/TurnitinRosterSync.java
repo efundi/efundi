@@ -192,22 +192,9 @@ public class TurnitinRosterSync {
 
 		if (user != null) {
                 	String uem = turnitinReviewServiceImpl.getEmail(user);
-			// Ensure we have all the data we need; abort if we can't proceed
-			if (uem == null)
-			{
-				return false;
-			}
-			// Get names, considering nulls
-			String fName = TurnitinAPIUtil.removeDiacritics(turnitinReviewServiceImpl.getUserFirstName(user));
-			String lName = TurnitinAPIUtil.removeDiacritics(turnitinReviewServiceImpl.getUserLastName(user));
-			String tem = (String) turnitinReviewServiceImpl.getInstructorInfo(siteId).get("uem");
-			if (tem == null)
-			{
-				return false;
-			}
 			Map params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(),
-					"fid","19","fcmd", "3", "uem", user.getEmail(), "uid", TurnitinAPIUtil.removeDiacritics(user.getId()),
-					"ufn", TurnitinAPIUtil.removeDiacritics(user.getFirstName()), "uln", TurnitinAPIUtil.removeDiacritics(user.getLastName()),
+					"fid","19","fcmd", "3", "uem", uem, "uid", user.getId(),
+					"ufn", user.getFirstName(), "uln", user.getLastName(),
 					"username", user.getDisplayName(), "ctl", siteId, "cid", siteId,
 					"utp", currentRole+"",
 					"tem", turnitinReviewServiceImpl.getInstructorInfo(siteId).get("uem"));
