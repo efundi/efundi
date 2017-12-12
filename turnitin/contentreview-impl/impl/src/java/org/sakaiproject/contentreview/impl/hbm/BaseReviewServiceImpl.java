@@ -37,6 +37,7 @@ import org.sakaiproject.genericdao.api.search.Restriction;
 import org.sakaiproject.genericdao.api.search.Search;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.turnitin.util.TurnitinAPIUtil;
 import org.sakaiproject.user.api.UserDirectoryService;
 
 public abstract class BaseReviewServiceImpl implements ContentReviewService {
@@ -101,7 +102,7 @@ public abstract class BaseReviewServiceImpl implements ContentReviewService {
 			log.debug("Generating default taskId");
 			taskId = siteId + " " + defaultAssignmentName;
 		}
-
+		userId = TurnitinAPIUtil.removeDiacritics(userId);
 		log.debug("Adding content: " + contentId + " from site " + siteId
 					+ " and user: " + userId + " for task: " + taskId + " to submission queue");
 

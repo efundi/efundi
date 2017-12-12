@@ -33,6 +33,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -91,6 +92,12 @@ public class TurnitinAPIUtil {
 		}
 		return assignEnc;
 	}
+    
+	public static String removeDiacritics(String text) {
+        return text == null || text.equals("") ? null
+                : Normalizer.normalize(text, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+    }
 
 	private String encodeMultipartParam(String name, String value, String boundary) {
 		return "--" + boundary + "\r\nContent-Disposition: form-data; name=\""
@@ -290,6 +297,11 @@ public class TurnitinAPIUtil {
 	public static InputStream callTurnitinReturnInputStream(String apiURL, Map<String,Object> parameters, 
 			String secretKey, int timeout, Proxy proxy, boolean isMultipart) throws TransientSubmissionException, SubmissionException {
 		InputStream togo = null;
+				
+        if (parameters.containsKey("uid")) {
+            String uid = (String) parameters.get("uid");
+            parameters.put("uid", removeDiacritics(uid));
+        }
 		
 		StringBuilder apiDebugSB = new StringBuilder();
 

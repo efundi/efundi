@@ -412,7 +412,7 @@ public class TurnitinReviewServiceImpl extends BaseReviewServiceImpl {
 		String uem = getEmail(user);
 		String ufn = getUserFirstName(user);
 		String uln = getUserLastName(user);
-		String uid = item.getUserId();
+		String uid = TurnitinAPIUtil.removeDiacritics(item.getUserId());
 		String utp = "1";
 
 		Map params = TurnitinAPIUtil.packMap(turnitinConn.getBaseTIIOptions(),
@@ -1305,7 +1305,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 				"ufn", ufn,
 				"uln", uln,
 				"utp", utp,
-				"uid", uid
+				"uid", TurnitinAPIUtil.removeDiacritics(uid)
 		);
 
 		Document document = turnitinConn.callTurnitinReturnDocument(params);
@@ -1597,7 +1597,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 			String ptl =  userEid  + ":" + fileName;
 			String ptype = "2";
 
-			String uid = currentItem.getUserId();
+			String uid = TurnitinAPIUtil.removeDiacritics(currentItem.getUserId());
 			String cid = currentItem.getSiteId();
 			String assignid = currentItem.getTaskId();
 
@@ -2398,6 +2398,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 	 */
 	private String getUserFirstName(User user) {
 		String ufn = user.getFirstName().trim();
+		ufn = TurnitinAPIUtil.removeDiacritics(ufn);
 		if (ufn == null || ufn.equals("")) {
 			boolean genFN = (boolean) serverConfigurationService.getBoolean("turnitin.generate.first.name", true);
 			if (genFN) {
@@ -2433,7 +2434,7 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 				}
 			}
 		}
-		return uln;
+		return TurnitinAPIUtil.removeDiacritics(uln);
 	}
 	
 	public String getLocalizedStatusMessage(String messageCode, String userRef) {
@@ -2538,9 +2539,9 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 			}
 			else {
 				togo.put("uem", getEmail(inst));
-				togo.put("ufn", inst.getFirstName());
-				togo.put("uln", inst.getLastName());
-				togo.put("uid", inst.getId());
+				togo.put("ufn", TurnitinAPIUtil.removeDiacritics(inst.getFirstName()));
+				togo.put("uln", TurnitinAPIUtil.removeDiacritics(inst.getLastName()));
+				togo.put("uid", TurnitinAPIUtil.removeDiacritics(inst.getId()));
 				togo.put("username", inst.getDisplayName());
 			}
 		}
@@ -2585,9 +2586,9 @@ private List<ContentReviewItem> getItemsByContentId(String contentId) {
 			}
 			else {
 				togo.put("uem", getEmail(inst));
-				togo.put("ufn", inst.getFirstName());
-				togo.put("uln", inst.getLastName());
-				togo.put("uid", inst.getId());
+				togo.put("ufn", TurnitinAPIUtil.removeDiacritics(inst.getFirstName()));
+				togo.put("uln", TurnitinAPIUtil.removeDiacritics(inst.getLastName()));
+				togo.put("uid", TurnitinAPIUtil.removeDiacritics(inst.getId()));
 				togo.put("username", inst.getDisplayName());
 			}
 		}
