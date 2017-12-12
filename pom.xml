@@ -120,6 +120,7 @@
                 <module>Scorm</module>
                 <module>dashboard</module>
                 <module>blogwow</module>
+                <module>turnitin/contentreview-impl</module>
             </modules>
         </profile>
         <profile>
